@@ -1,10 +1,12 @@
-name: Build and display  Image tag staging-AP
+name: Build and Push Docker Image to Docker Hub-staging-ap
 on:
   pull_request:
     branches:
       - staging
+
 jobs:
-  extract-pr-info:
+  build-and-push:
+    name: Build and Push
     runs-on: ubuntu-latest
     steps:
       - name: Parse and Validate PR Body
@@ -15,24 +17,30 @@ jobs:
           echo "PR_BODY=$PR_BODY"
 
           # Initialize selected environment variables
+          
           STAGING_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Staging: `)[^`]+')
-         
+        
           echo "STAGING_SELECTED=$STAGING_SELECTED" >> $GITHUB_ENV
-          # Extract image tags for each region
-          STAGING_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "STAGING Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
-         
+          
+          STAGING_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          
           # Export image tags to the environment
+         
           echo "STAGING_IMAGE_AP=$STAGING_IMAGE_AP" >> $GITHUB_ENV
+          
 
       - name: Validate and Display Selected Environments
         run: |
           echo "Selected Environments:"
-          if [ "$STAGING_SELECTED" == "Y" ]; then
-            if [ -z "$STAGING_IMAGE_AP" ] ; then
-              echo "Error: Missing image tag values for STAGING Environment."
-              exit 1
-            fi
-            echo "STAGING: AP=$STAGING_IMAGE_AP"
-          fi
 
          
+
+          if [ "$STAGING_SELECTED" == "Y" ]; then
+            if [ -z "$STAGING_IMAGE_AP" ]; then
+              echo "Error: Missing image tag values for Staging Environmensts."
+              exit 1
+            fi
+            echo "Staging: AP=$STAGING_IMAGE_AP"
+          fi
+
+        
