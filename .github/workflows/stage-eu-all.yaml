@@ -1,0 +1,38 @@
+name: Build and display  Image tag staging-EU
+on:
+  pull_request:
+    branches:
+      - staging
+jobs:
+  extract-pr-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse and Validate PR Body
+        id: parse_pr
+        run: |
+          # read the pull request body
+          PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
+          echo "PR_BODY=$PR_BODY"
+
+          # Initialize selected environment variables
+          STAGING_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Staging: `)[^`]+')
+         
+          echo "STAGING_SELECTED=$STAGING_SELECTED" >> $GITHUB_ENV
+          # Extract image tags for each region
+          STAGING_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "STAGING Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+         
+          # Export image tags to the environment
+          echo "STAGING_IMAGE_EU=$STAGING_IMAGE_EU" >> $GITHUB_ENV
+
+      - name: Validate and Display Selected Environments
+        run: |
+          echo "Selected Environments:"
+          if [ "$STAGING_SELECTED" == "Y" ]; then
+            if [ -z "$STAGING_IMAGE_EU" ] ; then
+              echo "Error: Missing image tag values for STAGING Environment."
+              exit 1
+            fi
+            echo "STAGING: EU=$STAGING_IMAGE_EU"
+          fi
+
+         
