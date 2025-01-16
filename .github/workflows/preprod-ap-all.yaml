@@ -19,8 +19,7 @@ jobs:
          
           echo "PREPROD_SELECTED=$PREPROD_SELECTED" >> $GITHUB_ENV
           # Extract image tags for each region
-          PREPROD_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "PREPROD Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
-         
+          PREPROD_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
           # Export image tags to the environment
           echo "PREPROD_IMAGE_AP=$PREPROD_IMAGE_AP" >> $GITHUB_ENV
 
@@ -28,11 +27,11 @@ jobs:
         run: |
           echo "Selected Environments:"
           if [ "$PREPROD_SELECTED" == "Y" ]; then
-            if [ -z "$PREPROD_IMAGE_AP" ] ; then
-              echo "Error: Missing image tag values for PREPROD Environment."
+            if [ -z "$PREPROD_IMAGE_AP" ] || [ -z "$PREPROD_IMAGE_EU" ] || [ -z "$PREPROD_IMAGE_US" ]; then
+              echo "Error: Missing image tag values for Preprod Environment."
               exit 1
             fi
-            echo "PREPROD: AP=$PREPROD_IMAGE_AP"
+            echo "Preprod: AP=$PREPROD_IMAGE_AP, EU=$PREPROD_IMAGE_EU, US=$PREPROD_IMAGE_US"
           fi
 
          
