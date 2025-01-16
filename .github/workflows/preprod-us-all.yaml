@@ -1,0 +1,38 @@
+name: Build and display  Image tag PREPROD-US
+on:
+  pull_request:
+    branches:
+      - preprod
+jobs:
+  extract-pr-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse and Validate PR Body
+        id: parse_pr
+        run: |
+          # read the pull request body
+          PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
+          echo "PR_BODY=$PR_BODY"
+
+          # Initialize selected environment variables
+          PREPROD_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Preprod: `)[^`]+')
+         
+          echo "PREPROD_SELECTED=$PREPROD_SELECTED" >> $GITHUB_ENV
+          # Extract image tags for each region
+          PREPROD_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "PREPROD Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+         
+          # Export image tags to the environment
+          echo "PREPROD_IMAGE_US=$PREPROD_IMAGE_US" >> $GITHUB_ENV
+
+      - name: Validate and Display Selected Environments
+        run: |
+          echo "Selected Environments:"
+          if [ "$PREPROD_SELECTED" == "Y" ]; then
+            if [ -z "$PREPROD_IMAGE_US" ] ; then
+              echo "Error: Missing image tag values for PREPROD Environment."
+              exit 1
+            fi
+            echo "PREPROD: US=$PREPROD_IMAGE_US"
+          fi
+
+         
