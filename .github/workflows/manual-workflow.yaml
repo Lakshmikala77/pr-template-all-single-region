@@ -1,0 +1,12 @@
+name: Basic Workflow Dispatch Example
+on:
+  workflow_dispatch:
+    branches:
+      - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
